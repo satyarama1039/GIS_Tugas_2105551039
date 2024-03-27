@@ -47,14 +47,52 @@ var circle = L.circle([-8.255917, 115.190258], {
 
 circle.bindPopup("Gunung pernah aktif");
 
-var locations = [
-    {lat: -8.25889, lng: 115.409467, name: 'Danau Batur'},
-    {lat: -8.27299, lng: 115.175547, name: 'Danau Beratan'},
-    {lat: -8.257446, lng: 115.096997, name: 'Danau Tamblingan'},
-    {lat: -8.245129, lng: 115.122978, name: 'Danau Buyan'}
-];
+const firebaseConfig = {
+    apiKey: "AIzaSyC8h1mCA5uLatlNevamS2sfUiNJ0_yZG5w",
+    authDomain: "fitness-8d36a.firebaseapp.com",
+    databaseURL: "https://fitness-8d36a-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "fitness-8d36a",
+    storageBucket: "fitness-8d36a.appspot.com",
+    messagingSenderId: "992203504745",
+    appId: "1:992203504745:web:88bc0c79d254685dd776f8",
+    measurementId: "G-EP44RZBSK3"
+};
 
-locations.forEach(location => {
-    var marker = L.marker([location.lat, location.lng]).addTo(map);
-    marker.bindPopup(location.name).openPopup();;
-});
+firebase.initializeApp(firebaseConfig);
+let database = firebase.database();
+
+database.ref("fitness_database").on("value", getData);
+
+function getData(snapshoot) {
+    snapshoot.forEach((element) => {
+        var data = element.val();
+
+        var marker = L.marker([data.latitude, data.longitude]).addTo(map);
+        marker.bindPopup(data.name).openPopup();;
+
+        // Function to show the overlay
+        function showOverlay() {
+            document.getElementById('image').src = data.photo;
+            document.getElementById('title').textContent = data.name;
+            document.getElementById('description').textContent = data.alamat;
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        // Function to hide the overlay
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        // Add a click event listener to the marker
+        marker.on('click', function() {
+            showOverlay();
+        });
+
+        // Close the overlay when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target == document.getElementById('overlay')) {
+                hideOverlay();
+            }
+        });
+    });
+}
