@@ -1,4 +1,4 @@
-var map = L.map('map').setView([-8.8008012, 115.1612023], 20);
+var map = L.map('map').setView([-8.8008012, 115.1612023], 10);
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 100,
@@ -7,20 +7,22 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 navigator.geolocation.getCurrentPosition(position => {
     const { coords: { latitude, longitude }} = position;
+
+    var myIcon = L.icon({
+        iconUrl: 'user.png',
+        iconSize: [35, 40],
+        iconAnchor: [16, 10],
+    });
+    
     var marker = new L.marker([latitude, longitude], {
     draggable: false,
+    icon: myIcon,
     autoPan: true
     }).addTo(map);
 
-    map.setView([latitude, longitude], 20);
+    map.setView([latitude, longitude], 10);
 
-    var myIcon = L.icon({
-        iconUrl: 'icon.png',
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-    });
-
-    marker.bindPopup("<b>Hello, you're here!").openPopup();
+    marker.bindPopup("<b>You're here!").openPopup();
     console.log(marker);
 })
 
@@ -38,14 +40,12 @@ function onMapClick(e) {
 
 map.on('click', onMapClick);
 
-var circle = L.circle([-8.255917, 115.190258], {
-    color: 'yellow',
+var circle = L.circle([-8.8008012, 115.1612023], {
+    color: 'red',
     fillColor: '#f03',
     fillOpacity: 0.5,
     radius: 500
 }).addTo(map);
-
-circle.bindPopup("Gunung pernah aktif");
 
 const firebaseConfig = {
     apiKey: "AIzaSyC8h1mCA5uLatlNevamS2sfUiNJ0_yZG5w",
@@ -63,18 +63,28 @@ let database = firebase.database();
 
 database.ref("fitness_database").on("value", getData);
 
+var nameFitness = null;
+
 function getData(snapshoot) {
     snapshoot.forEach((element) => {
         var data = element.val();
-
-        var marker = L.marker([data.latitude, data.longitude]).addTo(map);
+        
+        var myIcon = L.icon({
+            iconUrl: 'fitness_icon.png',
+            iconSize: [35, 40],
+            iconAnchor: [16, 10],
+        });
+   
+        var marker = L.marker([data.latitude, data.longitude],{
+            icon: myIcon
+            }).addTo(map);
         marker.bindPopup(data.name).openPopup();;
 
         // Function to show the overlay
         function showOverlay() {
-            document.getElementById('image').src = data.photo;
-            document.getElementById('title').textContent = data.name;
-            document.getElementById('description').textContent = data.alamat;
+            document.getElementById('overlayImage').src = data.photo;
+            document.getElementById('overlayTitle').textContent = data.name;
+            document.getElementById('overlayDescription').textContent = data.alamat;
             document.getElementById('overlay').style.display = 'block';
         }
 
@@ -86,13 +96,64 @@ function getData(snapshoot) {
         // Add a click event listener to the marker
         marker.on('click', function() {
             showOverlay();
+            nameFitness = data.name;
+            id_state = 1;
+            document.getElementById("delete").addEventListener("click", function() {
+                database.ref("fitness_database").orderByChild("name").equalTo(nameFitness).once("value", function(snapshot) {
+                    snapshot.forEach(function(childSnapshot) {
+                        // Mendapatkan referensi ke data yang cocok
+                        var dataRef = childSnapshot.ref;
+                
+                        // Menghapus data
+                        dataRef.remove()
+                            .then(function() {
+                                console.log("Data berhasil dihapus");
+                                location.reload(); 
+                            })
+                            .catch(function(error) {
+                                console.error("Error menghapus data:", error);
+                            });
+                    });
+                });
+            });
+
+            localStorage.setItem('nameFitness', nameFitness);
+            localStorage.setItem('id_state', id_state);
         });
 
         // Close the overlay when clicking outside of it
         window.addEventListener('click', function(event) {
-            if (event.target == document.getElementById('overlay')) {
+            if (event.target == document.getElementById('overlay') || event.target == document.getElementById('overlayImage') || event.target == document.getElementById('overlayTitle') || event.target == document.getElementById('overlayDescription')) {
                 hideOverlay();
             }
         });
     });
+}
+
+document.getElementById("edit").addEventListener("click", function() {
+    window.location.href = "edit_map.html";
+});
+
+document.getElementById("fab").addEventListener("click", function() {
+    nameRumahSakit = null;
+    id_state = 0
+    localStorage.setItem('nameFitness', nameFitness);
+    localStorage.setItem('id_state', id_state);
+    window.location.href = "edit_map.html";
+});
+
+window.onscroll = function() {scrollFunction()};
+    
+function scrollFunction() {
+    var scrollToTopBtn = document.getElementById("scrollToTopBtn");
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        scrollToTopBtn.style.display = "block";
+    } else {
+        scrollToTopBtn.style.display = "none";
+    }
+}
+
+function scrollToTop() {
+    document.body.scrollTop = 0; // For Safari
+    document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
 }
