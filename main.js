@@ -162,5 +162,5 @@ function scrollToTop() {
 
 document.getElementById("logout").addEventListener("click", function() {
     localStorage.setItem("token", "");
-    window.location.href = "login.html";
+    window.location.href = "index.html";
 });
