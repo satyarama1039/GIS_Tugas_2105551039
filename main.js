@@ -1,3 +1,5 @@
+
+
 var map = L.map('map').setView([-8.8008012, 115.1612023], 10);
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -70,8 +72,8 @@ function getData(snapshoot) {
         var data = element.val();
         
         var myIcon = L.icon({
-            iconUrl: 'fitness_icon.png',
-            iconSize: [35, 40],
+            iconUrl: 'icon-jantung.png',
+            iconSize: [40, 40],
             iconAnchor: [16, 10],
         });
    
@@ -157,3 +159,8 @@ function scrollToTop() {
     document.body.scrollTop = 0; // For Safari
     document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
 }
+
+document.getElementById("logout").addEventListener("click", function() {
+    localStorage.setItem("token", "");
+    window.location.href = "login.html";
+});
